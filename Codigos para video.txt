@@ -2,18 +2,18 @@
 # 🔹 1. PREPARACIÓN DE EC2
 # ================================
 
-sudo yum update -y                 # Actualiza paquetes disponibles
-sudo yum upgrade -y                # Actualiza paquetes instalados
+sudo yum update -y                 
+sudo yum upgrade -y                
 
-sudo yum install docker -y         # Instala Docker
-sudo systemctl enable docker       # Habilita Docker al iniciar EC2
-sudo systemctl start docker        # Inicia Docker
-sudo usermod -aG docker ec2-user   # Permite usar Docker sin sudo
+sudo yum install docker -y         
+sudo systemctl enable docker       
+sudo systemctl start docker        
+sudo usermod -aG docker ec2-user   
 
-sudo yum install git -y            # Instala Git
+sudo yum install git -y            
 
-docker --version                   # Verifica Docker
-git --version                      # Verifica Git
+docker --version                   
+git --version                      
 
 
 # ================================
@@ -23,7 +23,7 @@ git --version                      # Verifica Git
 docker images                      # Lista imágenes
 docker rmi nombreImagen            # Elimina imagen
 
-docker build -t nombreImagen .     # Construye imagen
+docker build -t nombreCarpeta .     # Construye imagen
 docker run nombreImagen            # Ejecuta contenedor
 
 docker start nombreContenedor      # Inicia contenedor
@@ -43,6 +43,10 @@ ls                                 # Lista archivos
 sudo comando                       # Ejecuta como admin
 su - nombreUsuario                 # Cambia usuario
 nano archivo.txt                   # Editor de texto
+mv archivo.txt {ruta} ejemplo /user/front 
+rm -rf directorio               # elimina un directorio sin preguntar ##cuidado con lo que eliminas##
+
+/home/ec2-user/
 
 
 # ================================
@@ -69,35 +73,49 @@ export AWS_REGION=us-east-1        # Define región (Linux)
 # 🔹 6. CREAR REPOSITORIOS ECR
 # ================================
 
-aws ecr create-repository --repository-name tienda-backend --region us-east-1    # Repo backend
-aws ecr create-repository --repository-name tienda-frontend --region us-east-1   # Repo frontend
-aws ecr create-repository --repository-name tienda-db --region us-east-1         # Repo DB
+aws ecr create-repository --repository-name tienda-backend --region us-east-1    
+aws ecr create-repository --repository-name tienda-frontend --region us-east-1   
+aws ecr create-repository --repository-name tienda-db --region us-east-1         
 
+
+# Repo backend
+
+# Repo frontend
+
+# Repo DB
 
 # ================================
 # 🔹 7. TAG DE IMÁGENES
 # ================================
 
-docker tag tienda-backend 730335185814.dkr.ecr.us-east-1.amazonaws.com/tienda-backend:v1    # Tag backend
-docker tag tienda-frontend 730335185814.dkr.ecr.us-east-1.amazonaws.com/tienda-frontend:v1  # Tag frontend
-docker tag tienda-db 730335185814.dkr.ecr.us-east-1.amazonaws.com/tienda-db:v1              # Tag DB
+docker tag tienda-backend 905418131384.dkr.ecr.us-east-1.amazonaws.com/tienda-backend:v1    
+docker tag tienda-frontend 905418131384.dkr.ecr.us-east-1.amazonaws.com/tienda-frontend:v1  
+docker tag tienda-db 905418131384.dkr.ecr.us-east-1.amazonaws.com/tienda-db:v1              
 
+
+# Tag backend
+# Tag frontend
+# Tag DB
 
 # ================================
 # 🔹 8. LOGIN A ECR
 # ================================
 
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 730335185814.dkr.ecr.us-east-1.amazonaws.com   # Login a ECR
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 905418131384.dkr.ecr.us-east-1.amazonaws.com   
 
+# Login a ECR
 
 # ================================
 # 🔹 9. PUSH DE IMÁGENES
 # ================================
 
-docker push 730335185814.dkr.ecr.us-east-1.amazonaws.com/tienda-backend:v1    # Subir backend
-docker push 730335185814.dkr.ecr.us-east-1.amazonaws.com/tienda-frontend:v1   # Subir frontend
-docker push 730335185814.dkr.ecr.us-east-1.amazonaws.com/tienda-db:v1         # Subir DB
+docker push 905418131384.dkr.ecr.us-east-1.amazonaws.com/tienda-backend:v1    
+docker push 905418131384.dkr.ecr.us-east-1.amazonaws.com/tienda-frontend:v1   
+docker push 905418131384.dkr.ecr.us-east-1.amazonaws.com/tienda-db:v1         
 
+# Subir backend
+# Subir frontend
+# Subir DB
 
 # ================================
 # 🔹 10. DESPLIEGUE MANUAL EN EC2
@@ -133,9 +151,9 @@ docker build -t tienda-backend .   # Construye backend
 docker run -d \
 --name tienda-backend \
 -p 3001:3001 \
--e DB_HOST=IP_PRIVADA_EC2_DB \
--e DB_USER=root \
--e DB_PASSWORD=admin123 \
+-e DB_HOST=10.0.2.93 \
+-e DB_USER=alumno \
+-e DB_PASSWORD=alumno123 \
 -e DB_NAME=tienda_perritos \
 -e DB_PORT=3306 \
 tienda-backend   # Ejecuta backend conectado a DB
@@ -181,25 +199,42 @@ docker logs tienda-frontend
 # ================================
 
 
-usuario de aws =   730335185814
+# Las credenciales las saque de la guia "2.5.2 ACTIVIDAD Automatización del despliegue de contenedores con GitHub Actions y AWS"
+
+####   IMPORTANTE   ######
+# GITHUB NO DEJA SUBIR LAS CREDENCIALES POR UN TEMA DE REGLAS A SI QUE NO LAS PUEDO SUBIR
+# EL USUARIO DE AWS NO ESTA EN LA GUIA PERO SOLO LO AÑADEN USTEDES PARA Copiar Y PEGAR  
+
+ 
 
 # AWS
-AWS_ACCESS_KEY_ID=TU_ACCESS_KEY
-AWS_SECRET_ACCESS_KEY=TU_SECRET_KEY
-AWS_SESSION_TOKEN=TU_SESSION_TOKEN
-AWS_REGION=us-east-1
+
 
 # ECR
-ECR_REGISTRY=730335185814.dkr.ecr.us-east-1.amazonaws.com
-ECR_REPO_BACKEND=tienda-backend
-ECR_REPO_FRONTEND=tienda-frontend
-ECR_REPO_DB=tienda-db
-
-ECR_REPO_URL_BACKEND=$ECR_REGISTRY/$ECR_REPO_BACKEND
-ECR_REPO_URL_FRONTEND=$ECR_REGISTRY/$ECR_REPO_FRONTEND
-ECR_REPO_URL_DB=$ECR_REGISTRY/$ECR_REPO_DB
+ 
 
 # EC2
-EC2_BACKEND_INSTANCE_ID=i-xxxxxxxxxxxx
-EC2_FRONTEND_INSTANCE_ID=i-xxxxxxxxxxxx
-EC2_DB_INSTANCE_ID=i-xxxxxxxxxxxx
+
+
+
+
+
+### etiquetado 
+
+
+Formato: usuario_Docker_hub/repo:tag
+
+docker tag tienda-backend alejandromontecinos/tienda-backend:v1
+
+docker tag tienda-frontend alejandromontecinos/tienda-frontend:v1
+
+docker tag tienda-db alejandromontecinos/tienda-db:v1
+
+
+
+ docker push alejandromontecinos/tienda-backend:v1
+ 
+ docker push alejandromontecinos/tienda-frontend:v1
+ 
+ docker push alejandromontecinos/tienda-db:v1
+ 
