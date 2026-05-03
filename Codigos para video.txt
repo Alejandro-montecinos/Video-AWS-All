@@ -1,0 +1,205 @@
+# ================================
+# 🔹 1. PREPARACIÓN DE EC2
+# ================================
+
+sudo yum update -y                 # Actualiza paquetes disponibles
+sudo yum upgrade -y                # Actualiza paquetes instalados
+
+sudo yum install docker -y         # Instala Docker
+sudo systemctl enable docker       # Habilita Docker al iniciar EC2
+sudo systemctl start docker        # Inicia Docker
+sudo usermod -aG docker ec2-user   # Permite usar Docker sin sudo
+
+sudo yum install git -y            # Instala Git
+
+docker --version                   # Verifica Docker
+git --version                      # Verifica Git
+
+
+# ================================
+# 🔹 2. COMANDOS BÁSICOS DOCKER
+# ================================
+
+docker images                      # Lista imágenes
+docker rmi nombreImagen            # Elimina imagen
+
+docker build -t nombreImagen .     # Construye imagen
+docker run nombreImagen            # Ejecuta contenedor
+
+docker start nombreContenedor      # Inicia contenedor
+docker stop nombreContenedor       # Detiene contenedor
+docker restart nombreContenedor    # Reinicia contenedor
+
+docker ps -a                       # Lista contenedores
+docker logs nombreContenedor       # Logs del contenedor
+
+
+# ================================
+# 🔹 3. COMANDOS LINUX
+# ================================
+
+cd nombreCarpeta                   # Cambia de carpeta
+ls                                 # Lista archivos
+sudo comando                       # Ejecuta como admin
+su - nombreUsuario                 # Cambia usuario
+nano archivo.txt                   # Editor de texto
+
+
+# ================================
+# 🔹 4. VOLUMENES DOCKER
+# ================================
+
+docker volume ls                   # Lista volúmenes
+docker volume rm dbdata            # Elimina volumen
+
+
+# ================================
+# 🔹 5. AWS CLI CONFIGURACIÓN
+# ================================
+
+msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi   # Instala AWS CLI (Windows)
+
+aws configure                      # Configura credenciales AWS
+aws sts get-caller-identity        # Verifica credenciales activas
+
+export AWS_REGION=us-east-1        # Define región (Linux)
+
+
+# ================================
+# 🔹 6. CREAR REPOSITORIOS ECR
+# ================================
+
+aws ecr create-repository --repository-name tienda-backend --region us-east-1    # Repo backend
+aws ecr create-repository --repository-name tienda-frontend --region us-east-1   # Repo frontend
+aws ecr create-repository --repository-name tienda-db --region us-east-1         # Repo DB
+
+
+# ================================
+# 🔹 7. TAG DE IMÁGENES
+# ================================
+
+docker tag tienda-backend 730335185814.dkr.ecr.us-east-1.amazonaws.com/tienda-backend:v1    # Tag backend
+docker tag tienda-frontend 730335185814.dkr.ecr.us-east-1.amazonaws.com/tienda-frontend:v1  # Tag frontend
+docker tag tienda-db 730335185814.dkr.ecr.us-east-1.amazonaws.com/tienda-db:v1              # Tag DB
+
+
+# ================================
+# 🔹 8. LOGIN A ECR
+# ================================
+
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 730335185814.dkr.ecr.us-east-1.amazonaws.com   # Login a ECR
+
+
+# ================================
+# 🔹 9. PUSH DE IMÁGENES
+# ================================
+
+docker push 730335185814.dkr.ecr.us-east-1.amazonaws.com/tienda-backend:v1    # Subir backend
+docker push 730335185814.dkr.ecr.us-east-1.amazonaws.com/tienda-frontend:v1   # Subir frontend
+docker push 730335185814.dkr.ecr.us-east-1.amazonaws.com/tienda-db:v1         # Subir DB
+
+
+# ================================
+# 🔹 10. DESPLIEGUE MANUAL EN EC2
+# ================================
+
+# Copiar proyecto a cada EC2:
+/home/ec2-user/frontend   # EC2 WEB
+/home/ec2-user/backend    # EC2 BACKEND
+/home/ec2-user/db         # EC2 DB
+
+
+# ----------------
+# EC2 DB
+# ----------------
+
+cd /home/ec2-user/db
+docker build -t tienda-db .   # Construye imagen DB
+
+docker run -d \
+--name tienda-db \
+-p 3306:3306 \
+-v dbdata:/var/lib/mysql \
+tienda-db   # Ejecuta MySQL con persistencia
+
+
+# ----------------
+# EC2 BACKEND
+# ----------------
+
+cd /home/ec2-user/backend
+docker build -t tienda-backend .   # Construye backend
+
+docker run -d \
+--name tienda-backend \
+-p 3001:3001 \
+-e DB_HOST=IP_PRIVADA_EC2_DB \
+-e DB_USER=alumno \
+-e DB_PASSWORD=alumno123 \
+-e DB_NAME=tienda_perritos \
+-e DB_PORT=3306 \
+tienda-backend   # Ejecuta backend conectado a DB
+
+
+# ----------------
+# EC2 FRONTEND
+# ----------------
+
+cd /home/ec2-user/frontend
+docker build -t tienda-frontend .   # Construye frontend
+
+docker run -d \
+--name tienda-frontend \
+-p 80:80 \
+tienda-frontend   # Ejecuta frontend
+
+
+# ================================
+# 🔹 11. VERIFICACIÓN
+# ================================
+
+# Acceder desde navegador:
+http://IP_PUBLICA_EC2_FRONTEND:80
+
+# Logs:
+docker logs tienda-db
+docker logs tienda-backend
+docker logs tienda-frontend
+
+
+# ================================
+# 🔹 12. RECORDATORIOS
+# ================================
+
+# Abrir puerto 3001 en backend (Security Group)
+# Permitir tráfico desde frontend
+# Usar IP PRIVADA entre EC2
+
+
+# ================================
+# 🔹 13. VARIABLES Y CREDENCIALES
+# ================================
+
+
+usuario de aws =   730335185814
+
+# AWS
+AWS_ACCESS_KEY_ID=TU_ACCESS_KEY
+AWS_SECRET_ACCESS_KEY=TU_SECRET_KEY
+AWS_SESSION_TOKEN=TU_SESSION_TOKEN
+AWS_REGION=us-east-1
+
+# ECR
+ECR_REGISTRY=730335185814.dkr.ecr.us-east-1.amazonaws.com
+ECR_REPO_BACKEND=tienda-backend
+ECR_REPO_FRONTEND=tienda-frontend
+ECR_REPO_DB=tienda-db
+
+ECR_REPO_URL_BACKEND=$ECR_REGISTRY/$ECR_REPO_BACKEND
+ECR_REPO_URL_FRONTEND=$ECR_REGISTRY/$ECR_REPO_FRONTEND
+ECR_REPO_URL_DB=$ECR_REGISTRY/$ECR_REPO_DB
+
+# EC2
+EC2_BACKEND_INSTANCE_ID=i-xxxxxxxxxxxx
+EC2_FRONTEND_INSTANCE_ID=i-xxxxxxxxxxxx
+EC2_DB_INSTANCE_ID=i-xxxxxxxxxxxx
