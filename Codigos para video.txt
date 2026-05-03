@@ -134,8 +134,8 @@ docker run -d \
 --name tienda-backend \
 -p 3001:3001 \
 -e DB_HOST=IP_PRIVADA_EC2_DB \
--e DB_USER=alumno \
--e DB_PASSWORD=alumno123 \
+-e DB_USER=root \
+-e DB_PASSWORD=admin123 \
 -e DB_NAME=tienda_perritos \
 -e DB_PORT=3306 \
 tienda-backend   # Ejecuta backend conectado a DB
